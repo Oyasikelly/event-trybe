@@ -1,40 +1,89 @@
+'use client'
+
 import Link from 'next/link'
 import { ArrowRight, Calendar, Users, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { motion } from 'framer-motion'
 
 export function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-primary/5 via-background to-background">
-      {/* Background decoration */}
+    <section className="relative overflow-hidden">
+      {/* Gradient Background */}
+      <div className="absolute inset-0 bg-gradient-to-br from-[#6a11cb] via-[#2575fc] to-[#4facfe] opacity-10" />
+      
+      {/* Animated Gradient Orbs */}
       <div className="absolute inset-0 -z-10">
-        <div className="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
-        <div className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-primary/5 blur-3xl" />
+        <motion.div 
+          className="absolute top-0 left-1/4 h-96 w-96 rounded-full bg-gradient-to-r from-[#6a11cb] to-[#2575fc] opacity-20 blur-3xl"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.2, 0.3, 0.2],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute bottom-0 right-1/4 h-96 w-96 rounded-full bg-gradient-to-r from-[#2575fc] to-[#4facfe] opacity-20 blur-3xl"
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.25, 0.2],
+          }}
+          transition={{
+            duration: 10,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 1
+          }}
+        />
       </div>
 
       <div className="container mx-auto px-4 py-20 md:py-32">
         <div className="mx-auto max-w-4xl text-center space-y-8">
           {/* Badge */}
-          <div className="inline-flex items-center rounded-full border bg-background px-4 py-1.5 text-sm">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center rounded-full border bg-background px-4 py-1.5 text-sm"
+          >
             <Sparkles className="mr-2 h-4 w-4 text-primary" />
             <span className="text-muted-foreground">Trusted by thousands of event organizers</span>
-          </div>
+          </motion.div>
 
           {/* Heading */}
-          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
+          <motion.h1 
+            className="text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+          >
             Create Amazing Events,{' '}
-            <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#6a11cb] via-[#2575fc] to-[#4facfe] bg-clip-text text-transparent">
               Connect People
             </span>
-          </h1>
+          </motion.h1>
 
           {/* Description */}
-          <p className="mx-auto max-w-2xl text-lg text-muted-foreground sm:text-xl">
+          <motion.p 
+            className="mx-auto max-w-2xl text-lg text-muted-foreground sm:text-xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
             The ultimate platform for creating, managing, and discovering events. 
             From small meetups to large conferences, we've got you covered.
-          </p>
+          </motion.p>
 
           {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+          >
             <Button size="lg" className="w-full sm:w-auto" asChild>
               <Link href="/signup">
                 Get Started Free
@@ -46,32 +95,49 @@ export function HeroSection() {
                 Browse Events
               </Link>
             </Button>
-          </div>
+          </motion.div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-12">
-            <div className="space-y-2">
+          <motion.div 
+            className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <motion.div 
+              className="space-y-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <div className="flex items-center justify-center">
                 <Calendar className="h-8 w-8 text-primary" />
               </div>
               <div className="text-3xl font-bold">10K+</div>
               <div className="text-sm text-muted-foreground">Events Created</div>
-            </div>
-            <div className="space-y-2">
+            </motion.div>
+            <motion.div 
+              className="space-y-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <div className="flex items-center justify-center">
                 <Users className="h-8 w-8 text-primary" />
               </div>
               <div className="text-3xl font-bold">50K+</div>
               <div className="text-sm text-muted-foreground">Active Users</div>
-            </div>
-            <div className="space-y-2">
+            </motion.div>
+            <motion.div 
+              className="space-y-2"
+              whileHover={{ scale: 1.05 }}
+              transition={{ type: "spring", stiffness: 300 }}
+            >
               <div className="flex items-center justify-center">
                 <Sparkles className="h-8 w-8 text-primary" />
               </div>
               <div className="text-3xl font-bold">98%</div>
               <div className="text-sm text-muted-foreground">Satisfaction Rate</div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </section>

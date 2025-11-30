@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, Users, Clock, Tag, User, ArrowLeft } from 'lucide-react'
+import { Calendar, MapPin, Users, Clock, Tag, User, ArrowLeft, TypeOutlineIcon } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
@@ -28,6 +28,27 @@ async function getEvent(id: string) {
   return event
 }
 
+type Event = {
+  id: string
+  title: string
+  description: string
+  startDatetime: string
+  endDatetime: string
+  locationType: string
+  locationAddress: string | null
+  locationVirtualLink: string | null
+  capacityLimit: number | null
+  category: string | null
+  tags: string[]
+  owner: {
+    name: string | null
+    email: string | null
+  }
+  _count: {
+    registrations: number
+  }
+}
+ 
 export default async function EventDetailsPage({
   params,
 }: {
@@ -72,7 +93,7 @@ export default async function EventDetailsPage({
               )}
               {isPast && <Badge variant="outline">Past Event</Badge>}
               {isOngoing && <Badge className="bg-green-500">Ongoing</Badge>}
-              {event.tags.map((tag) => (
+              {event.tags.map((tag: string) => (
                 <Badge key={tag} variant="outline">
                   <Tag className="mr-1 h-3 w-3" />
                   {tag}

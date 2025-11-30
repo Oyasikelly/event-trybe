@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { prisma } from '@/lib/prisma'
 import { format } from 'date-fns'
+import { AnimatedEventCard, AnimatedSection } from '@/components/animations/AnimatedWrappers'
 
 async function getFeaturedEvents() {
   try {
@@ -40,6 +41,8 @@ async function getFeaturedEvents() {
   }
 }
 
+type FeaturedEvent = Awaited<ReturnType<typeof getFeaturedEvents>>[number]
+
 export async function FeaturedEvents() {
   const events = await getFeaturedEvents()
 
@@ -60,23 +63,26 @@ export async function FeaturedEvents() {
     <section className="py-16 md:py-24 bg-muted/30">
       <div className="container mx-auto px-4">
         {/* Section Header */}
-        <div className="text-center space-y-4 mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold">Featured Events</h2>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Discover amazing events happening near you
-          </p>
-        </div>
+        <AnimatedSection>
+          <div className="text-center space-y-4 mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold">Featured Events</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Discover amazing events happening near you
+            </p>
+          </div>
+        </AnimatedSection>
 
         {/* Events Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => {
+          {events.map((event: FeaturedEvent, index: number) => {
             const spotsLeft = event.capacityLimit 
               ? event.capacityLimit - event._count.registrations 
               : null
             const isFull = spotsLeft !== null && spotsLeft <= 0
 
             return (
-              <Card key={event.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+              <AnimatedEventCard key={event.id} index={index}>
+                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full">
                 <CardHeader className="p-0">
                   <div className="aspect-video bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                     <Calendar className="h-16 w-16 text-primary/40" />
@@ -135,19 +141,22 @@ export async function FeaturedEvents() {
                   </Button>
                 </CardFooter>
               </Card>
+            </AnimatedEventCard>
             )
           })}
         </div>
 
         {/* View All Link */}
-        <div className="text-center mt-12">
-          <Button size="lg" variant="outline" asChild>
-            <Link href="/find-events">
-              View All Events
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </Button>
-        </div>
+        <AnimatedSection>
+          <div className="text-center mt-12">
+            <Button size="lg" variant="outline" asChild>
+              <Link href="/find-events">
+                View All Events
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </AnimatedSection>
       </div>
     </section>
   )
