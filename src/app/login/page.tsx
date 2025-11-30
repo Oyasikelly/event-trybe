@@ -42,8 +42,8 @@ export default function LoginPage() {
         return
       }
 
-      // Redirect to callback URL or home
-      router.push(callbackUrl)
+      // Redirect to dashboard
+      router.push('/dashboard')
       router.refresh()
     } catch (err) {
       setError('An unexpected error occurred. Please try again.')
@@ -71,7 +71,7 @@ export default function LoginPage() {
             <Button
               variant="outline"
               className="w-full"
-              onClick={() => signIn('google', { callbackUrl })}
+              onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
               type="button"
             >
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
