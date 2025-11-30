@@ -1,9 +1,9 @@
 'use client'
 
-import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { TransitionLink } from '@/components/ui/transition-link'
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -95,10 +95,10 @@ export function DashboardNav({ user }: DashboardNavProps) {
       {/* Mobile Header */}
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-background border-b">
         <div className="flex items-center justify-between p-4">
-          <Link href="/dashboard" className="flex items-center space-x-2">
+          <TransitionLink href="/dashboard" className="flex items-center space-x-2">
             <Calendar className="h-6 w-6 text-primary" />
             <span className="font-bold text-xl">EventTrybe</span>
-          </Link>
+          </TransitionLink>
           
           <Button
             variant="ghost"
@@ -152,18 +152,18 @@ export function DashboardNav({ user }: DashboardNavProps) {
                   exit={{ opacity: 0, x: -20 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <Link href="/dashboard" className="flex items-center space-x-2">
+                  <TransitionLink href="/dashboard" className="flex items-center space-x-2">
                     <Calendar className="h-6 w-6 text-primary" />
                     <span className="font-bold text-xl">EventTrybe</span>
-                  </Link>
+                  </TransitionLink>
                 </motion.div>
               )}
             </AnimatePresence>
 
             {isCollapsed && (
-              <Link href="/dashboard" className="mx-auto">
+              <TransitionLink href="/dashboard" className="mx-auto">
                 <Calendar className="h-6 w-6 text-primary" />
-              </Link>
+              </TransitionLink>
             )}
 
             <Button
@@ -187,7 +187,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
               const isActive = pathname === item.href
               
               const navLink = (
-                <Link
+                <TransitionLink
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
@@ -218,7 +218,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
                       {item.badge}
                     </span>
                   )}
-                </Link>
+                </TransitionLink>
               )
 
               if (isCollapsed) {
@@ -275,16 +275,16 @@ export function DashboardNav({ user }: DashboardNavProps) {
                 <DropdownMenuLabel>My Account</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
-                  <Link href="/profile" className="cursor-pointer">
+                  <TransitionLink href="/profile" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
                     Profile
-                  </Link>
+                  </TransitionLink>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="/settings" className="cursor-pointer">
+                  <TransitionLink href="/settings" className="cursor-pointer">
                     <Settings className="mr-2 h-4 w-4" />
                     Settings
-                  </Link>
+                  </TransitionLink>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

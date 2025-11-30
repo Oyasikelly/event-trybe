@@ -37,6 +37,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           throw new Error('Invalid email or password')
         }
 
+        // Check if user signed up with OAuth (no password)
+        if (!user.passwordHash || user.passwordHash === '') {
+          throw new Error('This account uses Google sign-in. Please use "Continue with Google" instead.')
+        }
+
         // Verify password
         const isValidPassword = await bcrypt.compare(
           credentials.password as string,
