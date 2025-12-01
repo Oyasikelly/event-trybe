@@ -3,6 +3,14 @@ import bcrypt from 'bcryptjs'
 
 const prisma = new PrismaClient()
 
+// Helper function to generate slug
+function generateSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+}
+
 async function main() {
   console.log('🌱 Starting database seed...\n')
 
@@ -53,6 +61,7 @@ async function main() {
     data: {
       ownerId: user1.id,
       title: 'Tech Innovation Summit 2025',
+      slug: generateSlug('Tech Innovation Summit 2025'),
       description: `Join us for the biggest tech conference of the year! 
       
       This summit brings together industry leaders, innovators, and tech enthusiasts for three days of inspiring talks, hands-on workshops, and networking opportunities.
@@ -64,7 +73,7 @@ async function main() {
       - Startup pitch competition
       
       Don't miss this opportunity to learn, connect, and grow!`,
-      category: 'Technology',
+      category: 'TECH',
       tags: ['tech', 'conference', 'networking', 'innovation'],
       locationType: 'physical',
       locationAddress: 'Moscone Center, 747 Howard St, San Francisco, CA 94103',
@@ -85,6 +94,7 @@ async function main() {
     data: {
       ownerId: user2.id,
       title: 'React Masterclass: Building Modern Web Apps',
+      slug: generateSlug('React Masterclass: Building Modern Web Apps'),
       description: `Level up your React skills in this intensive 4-hour workshop!
       
       **What you'll learn:**
@@ -99,7 +109,7 @@ async function main() {
       - Familiarity with React fundamentals
       
       All attendees will receive course materials and access to recordings.`,
-      category: 'Education',
+      category: 'EDUCATION',
       tags: ['react', 'javascript', 'web development', 'workshop'],
       locationType: 'virtual',
       locationVirtualLink: 'https://zoom.us/j/123456789',
@@ -119,6 +129,7 @@ async function main() {
     data: {
       ownerId: user1.id,
       title: 'Weekly Developer Meetup',
+      slug: generateSlug('Weekly Developer Meetup'),
       description: `Join our weekly casual meetup for developers!
       
       A relaxed environment to:
@@ -128,7 +139,7 @@ async function main() {
       - Discuss latest tech trends
       
       All skill levels welcome!`,
-      category: 'Networking',
+      category: 'NETWORKING',
       tags: ['developers', 'meetup', 'networking', 'community'],
       locationType: 'physical',
       locationAddress: 'Tech Hub Coworking, 123 Market St, San Francisco, CA',
@@ -147,6 +158,7 @@ async function main() {
     data: {
       ownerId: user2.id,
       title: 'Web Development Bootcamp 2024',
+      slug: generateSlug('Web Development Bootcamp 2024'),
       description: `An intensive 12-week bootcamp that transformed beginners into full-stack developers.
       
       **Highlights:**
@@ -154,7 +166,7 @@ async function main() {
       - 85% job placement rate
       - Built 100+ real-world projects
       - Guest lectures from industry experts`,
-      category: 'Education',
+      category: 'EDUCATION',
       tags: ['bootcamp', 'web development', 'career', 'education'],
       locationType: 'physical',
       locationAddress: 'Code Academy, 456 Broadway, New York, NY',
@@ -179,8 +191,9 @@ async function main() {
     data: {
       ownerId: user1.id,
       title: 'AI & Machine Learning Conference',
+      slug: generateSlug('AI & Machine Learning Conference'),
       description: 'Coming soon! Details to be announced.',
-      category: 'Technology',
+      category: 'TECH',
       tags: ['AI', 'machine learning', 'conference'],
       locationType: 'virtual',
       locationVirtualLink: 'TBD',
@@ -202,6 +215,7 @@ async function main() {
     data: {
       eventId: event1.id,
       userId: user2.id,
+      ticketNumber: 'TKT-001',
       registrationStatus: 'confirmed',
       emailConfirmedAt: new Date(),
       calendarInviteSent: true,
@@ -213,6 +227,7 @@ async function main() {
     data: {
       eventId: event2.id,
       userId: user1.id,
+      ticketNumber: 'TKT-002',
       registrationStatus: 'pending_approval',
       emailConfirmedAt: new Date(),
       approvalStatus: 'pending',
@@ -224,6 +239,7 @@ async function main() {
     data: {
       eventId: event3.id,
       userId: user2.id,
+      ticketNumber: 'TKT-003',
       registrationStatus: 'confirmed',
       emailConfirmedAt: new Date(),
       calendarInviteSent: true,
@@ -236,6 +252,7 @@ async function main() {
     data: {
       eventId: event4.id,
       userId: user1.id,
+      ticketNumber: 'TKT-004',
       registrationStatus: 'confirmed',
       emailConfirmedAt: new Date('2024-08-20T00:00:00Z'),
       approvalStatus: 'accepted',

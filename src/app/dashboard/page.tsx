@@ -115,28 +115,28 @@ export default async function DashboardPage() {
       title: 'Create Event',
       description: 'Start organizing a new event',
       icon: Plus,
-      href: '/events/create',
+      href: '/dashboard/events/create',
       variant: 'default' as const,
     },
     {
       title: 'Browse Events',
       description: 'Discover events to attend',
       icon: Search,
-      href: '/find-events',
+      href: '/dashboard/find-events',
       variant: 'outline' as const,
     },
     {
       title: 'My Events',
       description: 'Manage your events',
       icon: List,
-      href: '/my-events',
+      href: '/dashboard/events/my-events',
       variant: 'outline' as const,
     },
     {
       title: 'My Registrations',
       description: 'View events you\'re attending',
       icon: UserCheck,
-      href: '/my-registrations',
+      href: '/dashboard/events/my-registrations',
       variant: 'outline' as const,
     },
   ]
@@ -222,7 +222,7 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent>
             <Button asChild size="lg">
-              <Link href="/events/create">
+              <Link href="../events/create">
                 <Plus className="mr-2 h-5 w-5" />
                 Create Your First Event
               </Link>

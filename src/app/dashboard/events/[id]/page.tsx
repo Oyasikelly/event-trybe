@@ -1,34 +1,16 @@
-import { notFound } from 'next/navigation'
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Calendar, MapPin, Users, Clock, Tag, User, ArrowLeft, TypeOutlineIcon } from 'lucide-react'
+import { Calendar, MapPin, Users, Clock, Tag, User, ArrowLeft, Loader2, CheckCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
-import { prisma } from '@/lib/prisma'
+import { useToast } from '@/hooks/use-toast'
 import { format } from 'date-fns'
 
-async function getEvent(id: string) {
-  const event = await prisma.event.findUnique({
-    where: { id },
-    include: {
-      owner: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      _count: {
-        select: {
-          registrations: true,
-        },
-      },
-    },
-  })
-
-  return event
-}
-
-type Event = {
+interface Event {
   id: string
   title: string
   description: string
@@ -37,9 +19,11 @@ type Event = {
   locationType: string
   locationAddress: string | null
   locationVirtualLink: string | null
+  liveEventUrl: string | null
   capacityLimit: number | null
   category: string | null
   tags: string[]
+  approvalMode: string
   owner: {
     name: string | null
     email: string | null
@@ -48,17 +32,92 @@ type Event = {
     registrations: number
   }
 }
- 
-export default async function EventDetailsPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
-  const { id } = await params
-  const event = await getEvent(id)
+
+export default function EventDetailsPage() {
+  const params = useParams()
+  const router = useRouter()
+  const { toast } = useToast()
+  const [event, setEvent] = useState<Event | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [isRegistering, setIsRegistering] = useState(false)
+  const [isRegistered, setIsRegistered] = useState(false)
+
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        const response = await fetch(`/api/events/${params.id}`)
+        if (!response.ok) throw new Error('Event not found')
+        
+        const data = await response.json()
+        setEvent(data)
+      } catch (error) {
+        toast({
+          title: 'Error',
+          description: 'Failed to load event',
+          variant: 'destructive',
+        })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (params.id) {
+      fetchEvent()
+    }
+  }, [params.id, toast])
+
+  const handleRegister = async () => {
+    if (!event) return
+
+    setIsRegistering(true)
+    try {
+      const response = await fetch(`/api/events/${event.id}/register`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to register')
+      }
+
+      setIsRegistered(true)
+      toast({
+        title: 'Registration successful!',
+        description: event.approvalMode === 'automated' 
+          ? 'You are now registered for this event.' 
+          : 'Your registration is pending approval.',
+      })
+    } catch (error) {
+      toast({
+        title: 'Registration failed',
+        description: error instanceof Error ? error.message : 'Please try again',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsRegistering(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   if (!event) {
-    notFound()
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold mb-2">Event Not Found</h2>
+          <p className="text-muted-foreground mb-4">The event you're looking for doesn't exist.</p>
+          <Button onClick={() => router.push('/dashboard')}>
+            Go to Dashboard
+          </Button>
+        </div>
+      </div>
+    )
   }
 
   const spotsLeft = event.capacityLimit 
@@ -72,9 +131,9 @@ export default async function EventDetailsPage({
     <div className="container mx-auto px-4 py-8">
       {/* Back Button */}
       <Button variant="ghost" asChild className="mb-6">
-        <Link href="/find-events">
+        <Link href="/dashboard/events/my-events">
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Events
+          Back to My Events
         </Link>
       </Button>
 
@@ -161,15 +220,20 @@ export default async function EventDetailsPage({
                         ? event.locationAddress || 'Physical Location'
                         : 'Virtual Event'}
                     </p>
-                    {event.locationType === 'virtual' && event.locationVirtualLink && (
+                    {event.locationType === 'virtual' && event.liveEventUrl && (
                       <a 
-                        href={event.locationVirtualLink}
+                        href={event.liveEventUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline"
+                        className="text-sm text-primary hover:underline inline-flex items-center gap-1 mt-1"
                       >
-                        Join Link
+                        Join Live Event →
                       </a>
+                    )}
+                    {event.locationType === 'virtual' && !event.liveEventUrl && (
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Link will be provided closer to event date
+                      </p>
                     )}
                   </div>
                 </div>
@@ -204,7 +268,12 @@ export default async function EventDetailsPage({
 
               {/* Register Button */}
               <div className="pt-4">
-                {isPast ? (
+                {isRegistered ? (
+                  <Button className="w-full" variant="outline" disabled>
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    Registered
+                  </Button>
+                ) : isPast ? (
                   <Button className="w-full" variant="outline" disabled>
                     Event Ended
                   </Button>
@@ -213,17 +282,22 @@ export default async function EventDetailsPage({
                     Event Full
                   </Button>
                 ) : (
-                  <Button className="w-full" asChild>
-                    <Link href="/login">
-                      Register Now
-                    </Link>
+                  <Button 
+                    className="w-full" 
+                    onClick={handleRegister}
+                    disabled={isRegistering}
+                  >
+                    {isRegistering ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Registering...
+                      </>
+                    ) : (
+                      'Register Now'
+                    )}
                   </Button>
                 )}
               </div>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Login required to register
-              </p>
             </CardContent>
           </Card>
         </div>

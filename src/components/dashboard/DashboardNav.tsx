@@ -14,7 +14,10 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Plus,
+  Ticket,
+  Search
 } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -47,26 +50,39 @@ const navItems = [
     badge: null,
   },
   {
+    label: 'Find Events',
+    href: '/dashboard/find-events',
+    icon: Search,
+    badge: null,
+  },
+  {
+    label: 'Create Event',
+    href: '/dashboard/events/create',
+    icon: Plus,
+    badge: null,
+    highlight: true,
+  },
+  {
     label: 'My Events',
-    href: '/my-events',
+    href: '/dashboard/events/my-events',
     icon: Calendar,
     badge: null,
   },
   {
     label: 'My Registrations',
-    href: '/my-registrations',
-    icon: Users,
+    href: '/dashboard/my-registrations',
+    icon: Ticket,
     badge: null,
   },
   {
     label: 'Profile',
-    href: '/profile',
+    href: '/dashboard/profile',
     icon: User,
     badge: null,
   },
   {
     label: 'Settings',
-    href: '/settings',
+    href: '/dashboard/settings',
     icon: Settings,
     badge: null,
   },
@@ -196,6 +212,7 @@ export function DashboardNav({ user }: DashboardNavProps) {
                     'transition-all duration-200',
                     'hover:bg-accent hover:text-accent-foreground',
                     isActive && 'bg-gradient-to-r from-primary/10 to-primary/5 text-primary font-medium',
+                    item.highlight && !isActive && 'bg-gradient-to-r from-primary to-primary/80 text-white hover:from-primary/90 hover:to-primary/70',
                     isCollapsed && 'justify-center'
                   )}
                 >
