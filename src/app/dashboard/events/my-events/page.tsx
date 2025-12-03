@@ -18,6 +18,7 @@ import {
   DollarSign,
   Clock,
   Loader2,
+  Settings,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -365,10 +366,10 @@ export default function MyEventsPage() {
 
                   {/* Actions */}
                   <div className="flex items-center gap-2">
-                    <TransitionLink href={`../events/${event.id}`} className="flex-1">
-                      <Button variant="outline" className="w-full" size="sm">
-                        <Eye className="mr-2 h-4 w-4" />
-                        View
+                    <TransitionLink href={`${event.id}/manage`} className="flex-1">
+                      <Button variant="default" className="w-full" size="sm">
+                        <Settings className="mr-2 h-4 w-4" />
+                        Manage
                       </Button>
                     </TransitionLink>
 
@@ -385,6 +386,10 @@ export default function MyEventsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Public Page
+                        </DropdownMenuItem>
                         <DropdownMenuItem>
                           <Copy className="mr-2 h-4 w-4" />
                           Duplicate

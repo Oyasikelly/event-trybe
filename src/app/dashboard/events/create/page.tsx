@@ -85,7 +85,8 @@ export default function CreateEventPage() {
           : 'Your event has been saved as a draft.',
       })
 
-      router.push(`/events/${event.id}`)
+      // Redirect to event management dashboard
+      router.push(`/dashboard/events/${event.id}/manage`)
     } catch (error) {
       toast({
         title: 'Error',
