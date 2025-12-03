@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { generateTicketNumber } from '@/lib/utils/ticket-code'
+import { generateQRCodeBuffer } from '@/lib/utils/qr-code'
+import { uploadQRCodeToCloudinary } from '@/lib/utils/upload-qr-cloudinary'
+import { sendEmail } from '@/lib/email/send-email'
+import { renderRegistrationConfirmationEmail } from '@/lib/email/templates/registration-confirmation'
+import { formatEventDateRange } from '@/lib/utils/event-utils'
 
 export async function POST(
   request: NextRequest,
@@ -27,7 +33,13 @@ export async function POST(
         capacityLimit: true,
         registrationDeadline: true,
         startDatetime: true,
+        endDatetime: true,
         approvalMode: true,
+        locationType: true,
+        locationAddress: true,
+        locationCity: true,
+        locationState: true,
+        liveEventUrl: true,
         _count: {
           select: {
             registrations: true,
@@ -91,7 +103,7 @@ export async function POST(
     }
 
     // Generate unique ticket number
-    const ticketNumber = `TKT-${Date.now()}-${Math.random().toString(36).substring(2, 9).toUpperCase()}`
+    const ticketNumber = generateTicketNumber()
 
     // Create registration
     const registration = await prisma.registration.create({
@@ -111,15 +123,79 @@ export async function POST(
             endDatetime: true,
           },
         },
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
       },
     })
 
+    // Generate QR code and upload to Cloudinary
+    let qrCodeUrl: string | undefined
+
+    try {
+      const qrCodeData = {
+        ticketNumber: registration.ticketNumber,
+        eventId: registration.eventId,
+        userId: registration.userId,
+        registrationId: registration.id,
+        timestamp: new Date().toISOString(),
+      }
+
+      const qrCodeBuffer = await generateQRCodeBuffer(qrCodeData)
+      qrCodeUrl = await uploadQRCodeToCloudinary(qrCodeBuffer, registration.ticketNumber)
+
+      // Update registration with QR code URL
+      await prisma.registration.update({
+        where: { id: registration.id },
+        data: { qrCode: qrCodeUrl },
+      })
+    } catch (qrError) {
+      console.error('Error generating/uploading QR code:', qrError)
+      // Continue without QR code - don't fail the registration
+    }
+
+    // Send confirmation email
+    try {
+      const eventLocation = event.locationType === 'virtual'
+        ? 'Virtual Event'
+        : event.locationCity && event.locationState
+          ? `${event.locationCity}, ${event.locationState}`
+          : event.locationAddress || 'TBA'
+
+      const emailHtml = renderRegistrationConfirmationEmail({
+        userName: registration.user.name || 'there',
+        eventTitle: event.title,
+        eventDate: formatEventDateRange(
+          new Date(event.startDatetime),
+          new Date(event.endDatetime)
+        ),
+        eventLocation,
+        ticketNumber: registration.ticketNumber,
+        qrCodeUrl,
+      })
+
+      await sendEmail({
+        to: registration.user.email!,
+        subject: `Registration Confirmed: ${event.title}`,
+        html: emailHtml,
+      })
+    } catch (emailError) {
+      console.error('Error sending confirmation email:', emailError)
+      // Continue - email failure shouldn't fail the registration
+    }
+
     return NextResponse.json({
       success: true,
-      registration,
+      registration: {
+        ...registration,
+        qrCodeUrl,
+      },
       message: event.approvalMode === 'automated' 
-        ? 'Successfully registered for the event!' 
-        : 'Registration submitted and pending approval',
+        ? 'Successfully registered! Check your email for confirmation.' 
+        : 'Registration submitted and pending approval. Check your email for updates.',
     })
   } catch (error) {
     console.error('Error registering for event:', error)
