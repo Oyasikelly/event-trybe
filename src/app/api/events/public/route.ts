@@ -8,7 +8,25 @@ export async function GET(request: NextRequest) {
         status: 'published',
         // Show all published events (past and future)
       },
-      include: {
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        description: true,
+        category: true,
+        eventType: true,
+        startDatetime: true,
+        endDatetime: true,
+        locationType: true,
+        locationCity: true,
+        locationState: true,
+        isFree: true,
+        price: true,
+        currency: true,
+        capacityLimit: true,
+        bannerImageUrl: true,
+        tags: true,
+        ownerId: true, // Include ownerId for identifying user's own events
         owner: {
           select: {
             name: true,
@@ -21,9 +39,10 @@ export async function GET(request: NextRequest) {
           },
         },
       },
-      orderBy: {
-        startDatetime: 'asc',
-      },
+      orderBy: [
+        { createdAt: 'desc' }, // Latest events first
+        { startDatetime: 'asc' }, // Then by start date
+      ],
     })
 
     return NextResponse.json(events)

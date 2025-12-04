@@ -3,6 +3,11 @@ import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { NotificationPreferences } from '@/components/settings/NotificationPreferences'
+import { PasswordChangeForm } from '@/components/settings/PasswordChangeForm'
+import { PrivacySettings } from '@/components/settings/PrivacySettings'
+import { DataExport } from '@/components/settings/DataExport'
+import { DangerZone } from '@/components/settings/DangerZone'
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -17,6 +22,12 @@ export default async function SettingsPage() {
       email: true,
       emailVerified: true,
       createdAt: true,
+      profileVisibility: true,
+      showProfilePhoto: true,
+      showBio: true,
+      showLocation: true,
+      showEventHistory: true,
+      emailNotifications: true,
     },
   })
 
@@ -24,8 +35,11 @@ export default async function SettingsPage() {
     redirect('/login')
   }
 
+  // Parse email notifications JSON
+  const emailNotifications = user.emailNotifications as any
+
   return (
-    <div className="max-w-3xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
         <p className="text-muted-foreground mt-2">
@@ -68,49 +82,27 @@ export default async function SettingsPage() {
       </Card>
 
       {/* Password Management */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Password</CardTitle>
-          <CardDescription>
-            Change your password or manage authentication methods
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Password management features coming soon. For now, use the "Forgot Password" link on the login page to reset your password.
-          </p>
-        </CardContent>
-      </Card>
+      <PasswordChangeForm />
 
-      {/* Notifications (Placeholder) */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Notifications</CardTitle>
-          <CardDescription>
-            Manage your email notification preferences
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Notification preferences will be available in a future update.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Notification Preferences */}
+      <NotificationPreferences initialPreferences={emailNotifications} />
+
+      {/* Privacy Settings */}
+      <PrivacySettings
+        initialSettings={{
+          profileVisibility: user.profileVisibility as 'public' | 'private',
+          showProfilePhoto: user.showProfilePhoto,
+          showBio: user.showBio,
+          showLocation: user.showLocation,
+          showEventHistory: user.showEventHistory,
+        }}
+      />
+
+      {/* Data Export */}
+      <DataExport />
 
       {/* Danger Zone */}
-      <Card className="border-red-200">
-        <CardHeader>
-          <CardTitle className="text-red-600">Danger Zone</CardTitle>
-          <CardDescription>
-            Irreversible account actions
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            Account deletion features will be available in a future update. Please contact support if you need to delete your account.
-          </p>
-        </CardContent>
-      </Card>
+      <DangerZone />
     </div>
   )
 }

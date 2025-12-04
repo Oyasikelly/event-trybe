@@ -12,6 +12,7 @@ import {
   Clock,
   Loader2,
   Tag,
+  Crown,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -47,6 +48,7 @@ interface Event {
   capacityLimit: number | null
   bannerImageUrl: string | null
   tags: string[]
+  ownerId: string
   owner: {
     name: string | null
   }
@@ -58,6 +60,7 @@ interface Event {
 export default function FindEventsPage() {
   const router = useRouter()
   const { toast } = useToast()
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [events, setEvents] = useState<Event[]>([])
   const [filteredEvents, setFilteredEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
@@ -66,12 +69,32 @@ export default function FindEventsPage() {
   const [typeFilter, setTypeFilter] = useState('all')
 
   useEffect(() => {
+    fetchCurrentUser()
     fetchEvents()
+    
+    // Auto-refresh every 30 seconds for latest events
+    const interval = setInterval(() => {
+      fetchEvents()
+    }, 30000)
+
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
     filterEvents()
   }, [events, searchQuery, categoryFilter, typeFilter])
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await fetch('/api/auth/session')
+      if (response.ok) {
+        const session = await response.json()
+        setCurrentUserId(session?.user?.id || null)
+      }
+    } catch (error) {
+      console.error('Error fetching current user:', error)
+    }
+  }
 
   const fetchEvents = async () => {
     try {
@@ -232,7 +255,7 @@ export default function FindEventsPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
-                <Card className="overflow-hidden hover:shadow-lg transition-shadow h-full flex flex-col">
+                <Card className={`overflow-hidden hover:shadow-lg transition-shadow h-full flex-col ${event.ownerId === currentUserId ? 'ring-2 ring-primary/50' : ''}`}>
                   {/* Event Image */}
                   <div className="relative h-48 bg-gradient-to-br from-primary/20 to-primary/5">
                     {event.bannerImageUrl ? (
@@ -246,6 +269,17 @@ export default function FindEventsPage() {
                         <span className="text-6xl">{getCategoryIcon(event.category || '')}</span>
                       </div>
                     )}
+                    
+                    {/* Your Event Badge - Top Left */}
+                    {event.ownerId === currentUserId && currentUserId && (
+                      <div className="absolute top-3 left-3">
+                        <Badge className="bg-primary text-primary-foreground flex items-center gap-1">
+                          <Crown className="h-3 w-3" />
+                          Your Event
+                        </Badge>
+                      </div>
+                    )}
+                    
                     {isPast && (
                       <div className="absolute top-3 right-3">
                         <Badge variant="outline" className="bg-background/80 backdrop-blur">

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit, Share2, Ban, Loader2, Check } from 'lucide-react'
+import { Edit, Share2, Ban, Loader2, Check, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -36,6 +36,7 @@ export function EventActions({ eventId, eventTitle, eventStatus }: EventActionsP
   const [showCancelDialog, setShowCancelDialog] = useState(false)
   const [isCancelling, setIsCancelling] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [isChangingStatus, setIsChangingStatus] = useState(false)
 
   const handleShare = async () => {
     const url = `${window.location.origin}/dashboard/events/${eventId}`
@@ -84,6 +85,33 @@ export function EventActions({ eventId, eventTitle, eventStatus }: EventActionsP
     }
   }
 
+  const handleStatusChange = async (newStatus: 'draft' | 'published') => {
+    setIsChangingStatus(true)
+    try {
+      const response = await fetch(`/api/events/${eventId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+      })
+
+      if (!response.ok) throw new Error('Failed to update status')
+
+      toast({
+        title: 'Status updated',
+        description: `Event ${newStatus === 'published' ? 'published' : 'saved as draft'} successfully`,
+      })
+      router.refresh()
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to update event status',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsChangingStatus(false)
+    }
+  }
+
   return (
     <>
       <div className="flex items-center gap-2">
@@ -107,6 +135,44 @@ export function EventActions({ eventId, eventTitle, eventStatus }: EventActionsP
             </>
           )}
         </Button>
+
+        {eventStatus === 'draft' ? (
+          <Button
+            variant="default"
+            onClick={() => handleStatusChange('published')}
+            disabled={isChangingStatus}
+          >
+            {isChangingStatus ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Publishing...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Publish Now
+              </>
+            )}
+          </Button>
+        ) : eventStatus === 'published' ? (
+          <Button
+            variant="outline"
+            onClick={() => handleStatusChange('draft')}
+            disabled={isChangingStatus}
+          >
+            {isChangingStatus ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Unpublishing...
+              </>
+            ) : (
+              <>
+                <Edit className="mr-2 h-4 w-4" />
+                Unpublish
+              </>
+            )}
+          </Button>
+        ) : null}
 
         {eventStatus !== 'cancelled' && (
           <Button

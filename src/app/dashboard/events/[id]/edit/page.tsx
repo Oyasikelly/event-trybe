@@ -43,6 +43,7 @@ export default function EditEventPage() {
   const [currentStep, setCurrentStep] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [statusConfirmed, setStatusConfirmed] = useState(false)
 
   const {
     register,
@@ -663,7 +664,10 @@ export default function EditEventPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <button
                           type="button"
-                          onClick={() => setValue('status', 'draft')}
+                          onClick={() => {
+                            setValue('status', 'draft')
+                            setStatusConfirmed(true)
+                          }}
                           className={`
                             p-4 rounded-lg border-2 transition-all
                             ${watchedValues.status === 'draft'
@@ -680,7 +684,10 @@ export default function EditEventPage() {
 
                         <button
                           type="button"
-                          onClick={() => setValue('status', 'published')}
+                          onClick={() => {
+                            setValue('status', 'published')
+                            setStatusConfirmed(true)
+                          }}
                           className={`
                             p-4 rounded-lg border-2 transition-all
                             ${watchedValues.status === 'published'
@@ -719,7 +726,7 @@ export default function EditEventPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || !statusConfirmed}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />

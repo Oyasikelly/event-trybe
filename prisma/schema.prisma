@@ -99,6 +99,17 @@ model User {
   createdAt                DateTime  @default(now()) @map("created_at")
   updatedAt                DateTime  @updatedAt @map("updated_at")
   isActive                 Boolean   @default(true) @map("is_active")
+  deactivatedAt            DateTime? @map("deactivated_at")
+
+  // Privacy Settings
+  profileVisibility        String    @default("public") @map("profile_visibility") // "public" | "private"
+  showProfilePhoto         Boolean   @default(true) @map("show_profile_photo")
+  showBio                  Boolean   @default(true) @map("show_bio")
+  showLocation             Boolean   @default(true) @map("show_location")
+  showEventHistory         Boolean   @default(true) @map("show_event_history")
+
+  // Notification Preferences (stored as JSON)
+  emailNotifications       Json      @default("{\"registrationConfirmation\":true,\"eventReminders\":true,\"eventUpdates\":true,\"approvalStatus\":true,\"newRegistrations\":true,\"eventCancellations\":true,\"marketing\":false}") @map("email_notifications")
 
   // Relations
   eventsOwned    Event[]        @relation("EventOwner")

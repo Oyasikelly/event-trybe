@@ -41,6 +41,7 @@ import {
 import { TransitionLink } from '@/components/ui/transition-link'
 import { useToast } from '@/hooks/use-toast'
 import { formatEventDateRange, getEventStatusColor, formatPrice, getCategoryIcon } from '@/lib/utils/event-utils'
+import { SocialShare } from '@/components/events/SocialShare'
 
 interface Event {
   id: string
@@ -378,6 +379,15 @@ export default function MyEventsPage() {
                         <Edit className="h-4 w-4" />
                       </Button>
                     </TransitionLink>
+
+                    <SocialShare
+                      eventId={event.id}
+                      eventTitle={event.title}
+                      eventDescription={event.description}
+                      variant="outline"
+                      size="sm"
+                      showLabel={false}
+                    />
 
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>

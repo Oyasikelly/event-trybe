@@ -55,7 +55,7 @@ export default function CreateEventPage() {
       eventType: 'IN_PERSON',
       currency: 'USD',
       tags: [],
-      status: 'draft', // Set default status
+      // No default status - force user to choose
     },
   })
 
@@ -134,7 +134,7 @@ export default function CreateEventPage() {
                   <div
                     className={`
                       w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all
-                      ${isActive ? 'border-primary bg-primary text-white' : ''}
+                      ${isActive ? 'border-primary bg-primary text-white animate-pulse' : ''}
                       ${isCompleted ? 'border-primary bg-primary text-white' : ''}
                       ${!isActive && !isCompleted ? 'border-gray-300 text-gray-400' : ''}
                     `}
@@ -617,7 +617,7 @@ export default function CreateEventPage() {
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Button>
               ) : (
-                <Button type="submit" disabled={isSubmitting}>
+                <Button type="submit" disabled={isSubmitting || !watchedValues.status}>
                   {isSubmitting ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
