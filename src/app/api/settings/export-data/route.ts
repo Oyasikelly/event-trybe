@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import ExcelJS from 'exceljs'
-import PDFDocument from 'pdfkit'
+import { jsPDF } from 'jspdf'
+import autoTable from 'jspdf-autotable'
 
 export async function POST(request: NextRequest) {
   try {
@@ -43,7 +44,7 @@ export async function POST(request: NextRequest) {
     if (format === 'excel') {
       return await generateExcel(exportData)
     } else if (format === 'pdf') {
-      return await generatePDF(exportData)
+      return generatePDF(exportData)
     } else {
       // JSON format
       return NextResponse.json(exportData, {
@@ -123,65 +124,96 @@ async function generateExcel(data: any) {
   })
 }
 
-async function generatePDF(data: any) {
-  return new Promise<NextResponse>((resolve, reject) => {
-    const doc = new PDFDocument()
-    const chunks: Buffer[] = []
+function generatePDF(data: any) {
+  const doc = new jsPDF()
 
-    doc.on('data', (chunk: Buffer) => chunks.push(chunk))
-    doc.on('end', () => {
-      const buffer = Buffer.concat(chunks)
-      resolve(
-        new NextResponse(buffer, {
-          headers: {
-            'Content-Type': 'application/pdf',
-            'Content-Disposition': `attachment; filename="user-data-${Date.now()}.pdf"`,
-          },
-        })
-      )
+  // Title
+  doc.setFontSize(20)
+  doc.text('User Data Export', 105, 15, { align: 'center' })
+  
+  let yPos = 30
+
+  // Profile Information
+  doc.setFontSize(16)
+  doc.text('Profile Information', 14, yPos)
+  yPos += 10
+
+  const profileData = [
+    ['Name', data.name],
+    ['Email', data.email],
+    ['Bio', data.bio || 'N/A'],
+    ['Location', data.location || 'N/A'],
+    ['Email Verified', data.emailVerified ? 'Yes' : 'No'],
+    ['Account Created', new Date(data.createdAt).toLocaleDateString()],
+  ]
+
+  autoTable(doc, {
+    startY: yPos,
+    head: [['Field', 'Value']],
+    body: profileData,
+    theme: 'grid',
+    headStyles: { fillColor: [66, 139, 202] },
+  })
+
+  yPos = (doc as any).lastAutoTable.finalY + 15
+
+  // Events Created
+  if (data.eventsOwned?.length > 0) {
+    doc.setFontSize(16)
+    doc.text('Events Created', 14, yPos)
+    yPos += 10
+
+    const eventsData = data.eventsOwned.map((event: any) => [
+      event.title,
+      event.status,
+      new Date(event.startDatetime).toLocaleDateString(),
+      event.category || 'N/A',
+    ])
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Title', 'Status', 'Start Date', 'Category']],
+      body: eventsData,
+      theme: 'grid',
+      headStyles: { fillColor: [66, 139, 202] },
     })
-    doc.on('error', reject)
 
-    // PDF Content
-    doc.fontSize(20).text('User Data Export', { align: 'center' })
-    doc.moveDown()
+    yPos = (doc as any).lastAutoTable.finalY + 15
+  }
 
-    // Profile Section
-    doc.fontSize(16).text('Profile Information')
-    doc.fontSize(12)
-    doc.text(`Name: ${data.name}`)
-    doc.text(`Email: ${data.email}`)
-    doc.text(`Bio: ${data.bio || 'N/A'}`)
-    doc.text(`Location: ${data.location || 'N/A'}`)
-    doc.text(`Email Verified: ${data.emailVerified ? 'Yes' : 'No'}`)
-    doc.text(`Account Created: ${new Date(data.createdAt).toLocaleDateString()}`)
-    doc.moveDown()
-
-    // Events Section
-    if (data.eventsOwned?.length > 0) {
-      doc.fontSize(16).text('Events Created')
-      doc.fontSize(12)
-      data.eventsOwned.forEach((event: any, index: number) => {
-        doc.text(`${index + 1}. ${event.title}`)
-        doc.text(`   Status: ${event.status}`)
-        doc.text(`   Start: ${new Date(event.startDatetime).toLocaleDateString()}`)
-        doc.moveDown(0.5)
-      })
-      doc.moveDown()
+  // Event Registrations
+  if (data.registrations?.length > 0) {
+    // Add new page if needed
+    if (yPos > 250) {
+      doc.addPage()
+      yPos = 20
     }
 
-    // Registrations Section
-    if (data.registrations?.length > 0) {
-      doc.fontSize(16).text('Event Registrations')
-      doc.fontSize(12)
-      data.registrations.forEach((reg: any, index: number) => {
-        doc.text(`${index + 1}. ${reg.event.title}`)
-        doc.text(`   Status: ${reg.registrationStatus}`)
-        doc.text(`   Registered: ${new Date(reg.registeredAt).toLocaleDateString()}`)
-        doc.moveDown(0.5)
-      })
-    }
+    doc.setFontSize(16)
+    doc.text('Event Registrations', 14, yPos)
+    yPos += 10
 
-    doc.end()
+    const registrationsData = data.registrations.map((reg: any) => [
+      reg.event.title,
+      reg.registrationStatus,
+      new Date(reg.registeredAt).toLocaleDateString(),
+    ])
+
+    autoTable(doc, {
+      startY: yPos,
+      head: [['Event', 'Status', 'Registered At']],
+      body: registrationsData,
+      theme: 'grid',
+      headStyles: { fillColor: [66, 139, 202] },
+    })
+  }
+
+  const pdfBuffer = Buffer.from(doc.output('arraybuffer'))
+
+  return new NextResponse(pdfBuffer, {
+    headers: {
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `attachment; filename="user-data-${Date.now()}.pdf"`,
+    },
   })
 }
