@@ -136,7 +136,7 @@ export default async function DashboardPage() {
       title: 'My Registrations',
       description: 'View events you\'re attending',
       icon: UserCheck,
-      href: '/dashboard/events/my-registrations',
+      href: '/dashboard/my-registrations',
       variant: 'outline' as const,
     },
   ]

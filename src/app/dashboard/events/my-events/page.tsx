@@ -153,6 +153,39 @@ export default function MyEventsPage() {
     }
   }
 
+  const handleDuplicate = async (eventId: string) => {
+    try {
+      const response = await fetch(`/api/events/${eventId}/duplicate`, {
+        method: 'POST',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to duplicate event')
+      }
+
+      const duplicatedEvent = await response.json()
+
+      toast({
+        title: 'Event duplicated',
+        description: 'The event has been duplicated successfully. Redirecting to edit...',
+      })
+
+      // Redirect to edit the duplicated event
+      router.push(`/dashboard/events/${duplicatedEvent.id}/edit`)
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to duplicate event',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleViewPublicPage = (eventId: string) => {
+    // Open public event page in new tab
+    window.open(`/dashboard/events/${eventId}`, '_blank')
+  }
+
   const getStatusBadge = (status: string) => {
     const colors = getEventStatusColor(status)
     return (
@@ -396,11 +429,11 @@ export default function MyEventsPage() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewPublicPage(event.id)}>
                           <Eye className="mr-2 h-4 w-4" />
                           View Public Page
                         </DropdownMenuItem>
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDuplicate(event.id)}>
                           <Copy className="mr-2 h-4 w-4" />
                           Duplicate
                         </DropdownMenuItem>

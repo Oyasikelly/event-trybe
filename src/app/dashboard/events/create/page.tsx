@@ -54,6 +54,7 @@ export default function CreateEventPage() {
       locationType: 'physical',
       eventType: 'IN_PERSON',
       currency: 'USD',
+      timezone: 'America/New_York', // Default timezone
       tags: [],
       // No default status - force user to choose
     },
@@ -314,7 +315,7 @@ export default function CreateEventPage() {
                       <Label htmlFor="timezone">Timezone *</Label>
                       <Select
                         onValueChange={(value) => setValue('timezone', value)}
-                        defaultValue={watchedValues.timezone || 'America/New_York'}
+                        value={watchedValues.timezone || 'America/New_York'}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select timezone" />
