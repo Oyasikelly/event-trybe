@@ -7,6 +7,13 @@ import { uploadQRCodeToCloudinary } from '@/lib/utils/upload-qr-cloudinary'
 import { sendEmail } from '@/lib/email/send-email'
 import { renderRegistrationConfirmationEmail } from '@/lib/email/templates/registration-confirmation'
 import { formatEventDateRange } from '@/lib/utils/event-utils'
+import {
+  generateICSFile,
+  generateGoogleCalendarUrl,
+  generateOutlookCalendarUrl,
+  generateOffice365CalendarUrl,
+  generateYahooCalendarUrl,
+} from '@/lib/utils/calendar'
 
 export async function POST(
   request: NextRequest,
@@ -40,6 +47,10 @@ export async function POST(
         locationCity: true,
         locationState: true,
         liveEventUrl: true,
+        isFree: true,
+        price: true,
+        currency: true,
+        paymentProvider: true,
         _count: {
           select: {
             registrations: true,
@@ -157,13 +168,30 @@ export async function POST(
       // Continue without QR code - don't fail the registration
     }
 
-    // Send confirmation email
+    // Send confirmation email with calendar invite
     try {
       const eventLocation = event.locationType === 'virtual'
         ? 'Virtual Event'
         : event.locationCity && event.locationState
           ? `${event.locationCity}, ${event.locationState}`
           : event.locationAddress || 'TBA'
+
+      // Generate calendar URLs
+      const eventDetails = {
+        title: event.title,
+        description: `You're registered for ${event.title}. Ticket: ${registration.ticketNumber}`,
+        location: eventLocation,
+        startDatetime: new Date(event.startDatetime),
+        endDatetime: new Date(event.endDatetime),
+      }
+
+      const googleCalendarUrl = generateGoogleCalendarUrl(eventDetails)
+      const outlookCalendarUrl = generateOutlookCalendarUrl(eventDetails)
+      const office365CalendarUrl = generateOffice365CalendarUrl(eventDetails)
+      const yahooCalendarUrl = generateYahooCalendarUrl(eventDetails)
+
+      // Generate ICS file
+      const icsContent = generateICSFile(eventDetails)
 
       const emailHtml = renderRegistrationConfirmationEmail({
         userName: registration.user.name || 'there',
@@ -175,16 +203,51 @@ export async function POST(
         eventLocation,
         ticketNumber: registration.ticketNumber,
         qrCodeUrl,
+        googleCalendarUrl,
+        outlookCalendarUrl,
+        office365CalendarUrl,
+        yahooCalendarUrl,
       })
 
       await sendEmail({
         to: registration.user.email!,
         subject: `Registration Confirmed: ${event.title}`,
         html: emailHtml,
+        attachments: [
+          {
+            filename: `${event.title.replace(/[^a-z0-9]/gi, '_')}_event.ics`,
+            content: icsContent,
+            contentType: 'text/calendar; charset=utf-8',
+          },
+        ],
+      })
+
+      // Update registration to mark calendar invite as sent
+      await prisma.registration.update({
+        where: { id: registration.id },
+        data: { calendarInviteSent: true },
       })
     } catch (emailError) {
       console.error('Error sending confirmation email:', emailError)
       // Continue - email failure shouldn't fail the registration
+    }
+
+    // Check if event requires payment
+    if (!event.isFree && event.price) {
+      return NextResponse.json({
+        success: true,
+        requiresPayment: true,
+        registration: {
+          id: registration.id,
+          ticketNumber: registration.ticketNumber,
+        },
+        payment: {
+          amount: event.price,
+          currency: event.currency,
+          provider: event.paymentProvider || 'paystack',
+        },
+        message: 'Registration created. Please complete payment to confirm your ticket.',
+      })
     }
 
     return NextResponse.json({

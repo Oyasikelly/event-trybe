@@ -1,10 +1,17 @@
 import { resend, FROM_EMAIL } from './resend-client'
 
+interface EmailAttachment {
+  filename: string
+  content: string | Buffer
+  contentType?: string
+}
+
 interface SendEmailParams {
   to: string
   subject: string
   html: string
   replyTo?: string
+  attachments?: EmailAttachment[]
 }
 
 export async function sendEmail({
@@ -12,6 +19,7 @@ export async function sendEmail({
   subject,
   html,
   replyTo,
+  attachments,
 }: SendEmailParams) {
   try {
     const { data, error } = await resend.emails.send({
@@ -20,6 +28,11 @@ export async function sendEmail({
       subject,
       html,
       replyTo,
+      attachments: attachments?.map(att => ({
+        filename: att.filename,
+        content: att.content,
+        content_type: att.contentType,
+      })),
     })
 
     if (error) {

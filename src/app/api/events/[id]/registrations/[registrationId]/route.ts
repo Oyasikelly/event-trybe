@@ -5,6 +5,13 @@ import { sendEmail } from '@/lib/email/send-email'
 import { renderRegistrationApprovedEmail } from '@/lib/email/templates/registration-approved'
 import { renderRegistrationRejectedEmail } from '@/lib/email/templates/registration-rejected'
 import { formatEventDateRange } from '@/lib/utils/event-utils'
+import {
+  generateICSFile,
+  generateGoogleCalendarUrl,
+  generateOutlookCalendarUrl,
+  generateOffice365CalendarUrl,
+  generateYahooCalendarUrl,
+} from '@/lib/utils/calendar'
 
 export async function PUT(
   request: NextRequest,
@@ -81,6 +88,23 @@ export async function PUT(
             ? `${event.locationCity}, ${event.locationState}`
             : event.locationAddress || 'TBA'
 
+        // Generate calendar URLs
+        const eventDetails = {
+          title: event.title,
+          description: `Your registration for ${event.title} has been approved. Ticket: ${registration.ticketNumber}`,
+          location: eventLocation,
+          startDatetime: new Date(event.startDatetime),
+          endDatetime: new Date(event.endDatetime),
+        }
+
+        const googleCalendarUrl = generateGoogleCalendarUrl(eventDetails)
+        const outlookCalendarUrl = generateOutlookCalendarUrl(eventDetails)
+        const office365CalendarUrl = generateOffice365CalendarUrl(eventDetails)
+        const yahooCalendarUrl = generateYahooCalendarUrl(eventDetails)
+
+        // Generate ICS file
+        const icsContent = generateICSFile(eventDetails)
+
         const emailHtml = renderRegistrationApprovedEmail({
           userName: registration.user.name || 'there',
           eventTitle: event.title,
@@ -92,12 +116,29 @@ export async function PUT(
           eventUrl: `${process.env.NEXT_PUBLIC_APP_URL}/events/${eventId}`,
           ticketNumber: registration.ticketNumber,
           qrCodeUrl: registration.qrCode || undefined,
+          googleCalendarUrl,
+          outlookCalendarUrl,
+          office365CalendarUrl,
+          yahooCalendarUrl,
         })
 
         await sendEmail({
           to: registration.user.email!,
           subject: `Registration Approved: ${event.title}`,
           html: emailHtml,
+          attachments: [
+            {
+              filename: `${event.title.replace(/[^a-z0-9]/gi, '_')}_event.ics`,
+              content: icsContent,
+              contentType: 'text/calendar; charset=utf-8',
+            },
+          ],
+        })
+
+        // Update registration to mark calendar invite as sent
+        await prisma.registration.update({
+          where: { id: registrationId },
+          data: { calendarInviteSent: true },
         })
       } else {
         const emailHtml = renderRegistrationRejectedEmail({

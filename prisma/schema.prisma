@@ -116,6 +116,7 @@ model User {
   registrations  Registration[]
   notifications  Notification[]
   approvalsGiven Registration[] @relation("ApprovedBy")
+  payments       Payment[]
 
   @@index([email])
   @@index([verificationToken])
@@ -149,9 +150,10 @@ model Event {
   registrationDeadline DateTime?      @map("registration_deadline")
 
   // Pricing
-  isFree   Boolean  @default(true) @map("is_free")
-  price    Decimal? @db.Decimal(10, 2)
-  currency String   @default("USD")
+  isFree          Boolean  @default(true) @map("is_free")
+  price           Decimal? @db.Decimal(10, 2)
+  currency        String   @default("NGN")
+  paymentProvider String?  @map("payment_provider") // paystack, stripe, flutterwave
 
   // Status & Metadata
   status              EventStatus @default(draft)
@@ -171,6 +173,7 @@ model Event {
   registrations Registration[]
   notifications Notification[]
   showcaseLink  ShowcaseLink?
+  payments      Payment[]
 
   @@index([ownerId])
   @@index([slug])
@@ -201,9 +204,12 @@ model Registration {
   cancelledAt            DateTime?          @map("cancelled_at")
 
   // Payment (if applicable)
-  amountPaid    Decimal? @map("amount_paid") @db.Decimal(10, 2)
-  paymentStatus String?  @map("payment_status") // PENDING, PAID, REFUNDED
-  paymentId     String?  @map("payment_id")
+  amountPaid       Decimal?  @map("amount_paid") @db.Decimal(10, 2)
+  paymentStatus    String?   @map("payment_status") // PENDING, PAID, REFUNDED, FAILED
+  paymentId        String?   @map("payment_id") // Provider's transaction ID
+  paymentProvider  String?   @map("payment_provider") // paystack, stripe, flutterwave
+  paymentReference String?   @unique @map("payment_reference") // Our internal reference
+  paidAt           DateTime? @map("paid_at")
 
   // Check-in
   checkedIn   Boolean   @default(false) @map("checked_in")
@@ -222,6 +228,7 @@ model Registration {
   user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   approvedBy    User?          @relation("ApprovedBy", fields: [approvedById], references: [id])
   notifications Notification[]
+  payments      Payment[]
 
   @@unique([eventId, userId])
   @@index([eventId])
@@ -270,4 +277,37 @@ model ShowcaseLink {
   @@index([slug])
   @@index([eventId])
   @@map("showcase_links")
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  registrationId    String   @map("registration_id")
+  eventId           String   @map("event_id")
+  userId            String   @map("user_id")
+
+  amount            Decimal  @db.Decimal(10, 2)
+  currency          String   @default("NGN")
+
+  provider          String   // paystack, flutterwave, stripe
+  providerReference String   @unique @map("provider_reference") // Provider's transaction ID
+  internalReference String   @unique @map("internal_reference") // Our reference
+
+  status            String   // pending, successful, failed, refunded
+
+  metadata          Json?    // Store provider-specific data
+
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  registration Registration @relation(fields: [registrationId], references: [id], onDelete: Cascade)
+  event        Event        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([registrationId])
+  @@index([eventId])
+  @@index([userId])
+  @@index([providerReference])
+  @@index([status])
+  @@map("payments")
 }

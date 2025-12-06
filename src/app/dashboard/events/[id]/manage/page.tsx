@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ArrowLeft, Loader2, Search, Filter } from 'lucide-react'
+import { ArrowLeft, Loader2, Search, Filter, Users } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -167,11 +167,19 @@ export default function EventManagePage() {
               Manage registrations and view analytics
             </p>
           </div>
-          <EventActions
-            eventId={event.id}
-            eventTitle={event.title}
-            eventStatus={event.status}
-          />
+          <div className="flex items-center gap-2">
+            <Button variant="outline" asChild>
+              <Link href={`/dashboard/events/${event.id}/attendees`}>
+                <Users className="mr-2 h-4 w-4" />
+                Manage Attendees
+              </Link>
+            </Button>
+            <EventActions
+              eventId={event.id}
+              eventTitle={event.title}
+              eventStatus={event.status}
+            />
+          </div>
         </div>
       </div>
 

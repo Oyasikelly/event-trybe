@@ -6,6 +6,10 @@ interface RegistrationApprovedEmailProps {
   eventUrl: string
   ticketNumber: string
   qrCodeUrl?: string
+  googleCalendarUrl?: string
+  outlookCalendarUrl?: string
+  office365CalendarUrl?: string
+  yahooCalendarUrl?: string
 }
 
 export function renderRegistrationApprovedEmail({
@@ -16,6 +20,10 @@ export function renderRegistrationApprovedEmail({
   eventUrl,
   ticketNumber,
   qrCodeUrl,
+  googleCalendarUrl,
+  outlookCalendarUrl,
+  office365CalendarUrl,
+  yahooCalendarUrl,
 }: RegistrationApprovedEmailProps): string {
   return `
     <!DOCTYPE html>
@@ -78,6 +86,60 @@ export function renderRegistrationApprovedEmail({
                         <img src="${qrCodeUrl}" alt="QR Code" style="width: 200px; height: 200px; border: 2px solid #bbf7d0; border-radius: 8px;" />
                         <p style="margin: 15px 0 0; font-size: 12px; color: #999999;">Show this QR code at the event entrance</p>
                       </div>
+                    ` : ''}
+
+                    <!-- Add to Calendar Section -->
+                    ${googleCalendarUrl || outlookCalendarUrl ? `
+                      <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                        <tr>
+                          <td style="text-align: center;">
+                            <p style="margin: 0 0 15px; font-size: 16px; font-weight: 600; color: #333333;">📅 Add to Your Calendar</p>
+                            <p style="margin: 0 0 20px; font-size: 14px; color: #666666;">Never miss this event - add it to your calendar now!</p>
+                            
+                            <!-- Calendar Buttons -->
+                            <table cellpadding="0" cellspacing="0" style="margin: 0 auto;">
+                              <tr>
+                                ${googleCalendarUrl ? `
+                                  <td style="padding: 5px;">
+                                    <a href="${googleCalendarUrl}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 24px; background-color: #4285f4; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                                      Google Calendar
+                                    </a>
+                                  </td>
+                                ` : ''}
+                                ${outlookCalendarUrl ? `
+                                  <td style="padding: 5px;">
+                                    <a href="${outlookCalendarUrl}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 24px; background-color: #0078d4; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                                      Outlook
+                                    </a>
+                                  </td>
+                                ` : ''}
+                              </tr>
+                              ${office365CalendarUrl || yahooCalendarUrl ? `
+                                <tr>
+                                  ${office365CalendarUrl ? `
+                                    <td style="padding: 5px;">
+                                      <a href="${office365CalendarUrl}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 24px; background-color: #d83b01; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                                        Office 365
+                                      </a>
+                                    </td>
+                                  ` : ''}
+                                  ${yahooCalendarUrl ? `
+                                    <td style="padding: 5px;">
+                                      <a href="${yahooCalendarUrl}" target="_blank" rel="noopener" style="display: inline-block; padding: 12px 24px; background-color: #6001d2; color: #ffffff; text-decoration: none; border-radius: 6px; font-size: 14px; font-weight: 500;">
+                                        Yahoo
+                                      </a>
+                                    </td>
+                                  ` : ''}
+                                </tr>
+                              ` : ''}
+                            </table>
+                            
+                            <p style="margin: 15px 0 0; font-size: 12px; color: #999999;">
+                              Or download the attached calendar file (.ics) to import into any calendar app
+                            </p>
+                          </td>
+                        </tr>
+                      </table>
                     ` : ''}
 
                     <!-- CTA Button -->
