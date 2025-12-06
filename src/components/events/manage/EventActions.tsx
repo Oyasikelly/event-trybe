@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Edit, Share2, Ban, Loader2, Check, Upload } from 'lucide-react'
+import { Edit, Share2, Ban, Loader2, Check, Upload, QrCode } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -135,6 +135,13 @@ export function EventActions({ eventId, eventTitle, eventStatus }: EventActionsP
             </>
           )}
         </Button>
+
+        <TransitionLink href={`/dashboard/events/${eventId}/check-in`}>
+          <Button variant="outline">
+            <QrCode className="mr-2 h-4 w-4" />
+            Check-in
+          </Button>
+        </TransitionLink>
 
         {eventStatus === 'draft' ? (
           <Button

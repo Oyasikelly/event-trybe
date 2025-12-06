@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -12,7 +12,7 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const eventId = params.id
+    const { id: eventId } = await params
 
     // Get the original event
     const originalEvent = await prisma.event.findUnique({
@@ -46,18 +46,17 @@ export async function POST(
         
         // Location
         locationType: originalEvent.locationType,
-        venue: originalEvent.venue,
-        address: originalEvent.address,
-        city: originalEvent.city,
-        state: originalEvent.state,
-        country: originalEvent.country,
-        virtualLink: originalEvent.virtualLink,
-        liveEventLink: originalEvent.liveEventLink,
+        locationVenue: originalEvent.locationVenue,
+        locationAddress: originalEvent.locationAddress,
+        locationCity: originalEvent.locationCity,
+        locationState: originalEvent.locationState,
+        locationCountry: originalEvent.locationCountry,
+        locationVirtualLink: originalEvent.locationVirtualLink,
+        liveEventUrl: originalEvent.liveEventUrl,
         
         // Registration
         capacityLimit: originalEvent.capacityLimit,
         registrationDeadline: originalEvent.registrationDeadline,
-        requiresApproval: originalEvent.requiresApproval,
         approvalMode: originalEvent.approvalMode,
         isFree: originalEvent.isFree,
         price: originalEvent.price,

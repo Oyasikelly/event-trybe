@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma'
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await auth()
@@ -18,9 +18,11 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
     }
 
+    const { id } = await params
+
     // Check if event exists and user is the owner
     const event = await prisma.event.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { ownerId: true },
     })
 
@@ -34,7 +36,7 @@ export async function PATCH(
 
     // Update event status
     const updatedEvent = await prisma.event.update({
-      where: { id: params.id },
+      where: { id },
       data: { status },
     })
 
