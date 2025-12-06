@@ -27,6 +27,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { eventSchema, type EventInput, eventCategories, eventTypes } from '@/lib/validations/event'
 import { getCategoryIcon } from '@/lib/utils/event-utils'
 import { useToast } from '@/hooks/use-toast'
+import { EventBannerUpload } from '@/components/events/EventBannerUpload'
 
 const steps = [
   { id: 1, title: 'Basic Info', icon: FileText },
@@ -335,6 +336,19 @@ export default function EditEventPage() {
                         {errors.eventType && (
                           <p className="text-sm text-red-600">{errors.eventType.message}</p>
                         )}
+                      </div>
+
+                      {/* Event Banner Upload */}
+                      <div className="space-y-2 mt-6">
+                        <Label>Event Banner Image (Optional)</Label>
+                        <EventBannerUpload
+                          currentImageUrl={watchedValues.bannerImageUrl}
+                          onUploadSuccess={(url: string) => setValue('bannerImageUrl', url)}
+                          onRemove={() => setValue('bannerImageUrl', '')}
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          Upload a banner image to make your event stand out
+                        </p>
                       </div>
                     </div>
                   </div>

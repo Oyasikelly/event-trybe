@@ -82,9 +82,22 @@ export default async function EventDetailsPage({
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           {/* Banner */}
-          <div className="aspect-video rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-            <Calendar className="h-24 w-24 text-primary/40" />
-          </div>
+          {event.bannerImageUrl ? (
+            <div className="aspect-video rounded-lg overflow-hidden">
+              <img 
+                src={event.bannerImageUrl} 
+                alt={event.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          ) : (
+            <div className="aspect-video rounded-lg bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center border border-primary/10">
+              <div className="text-center space-y-2">
+                <Calendar className="h-16 w-16 text-primary/30 mx-auto" />
+                <p className="text-sm text-muted-foreground">No event banner</p>
+              </div>
+            </div>
+          )}
 
           {/* Title and Category */}
           <div className="space-y-4">
